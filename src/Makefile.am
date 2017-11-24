@@ -31,6 +31,7 @@ LIBBITCOIN_CRYPTO=crypto/libbitcoin_crypto.a
 LIBBITCOIN_UNIVALUE=univalue/libbitcoin_univalue.a
 LIBBITCOINQT=qt/libbitcoinqt.a
 LIBSECP256K1=secp256k1/libsecp256k1.la
+LIBETHEREUM=ethereum/libethereum.a
 
 $(LIBSECP256K1): $(wildcard secp256k1/src/*) $(wildcard secp256k1/include/*)
 	$(AM_V_at)$(MAKE) $(AM_MAKEFLAGS) -C $(@D) $(@F)
@@ -43,7 +44,8 @@ EXTRA_LIBRARIES = \
   libbitcoin_common.a \
   univalue/libbitcoin_univalue.a \
   libbitcoin_server.a \
-  libbitcoin_cli.a
+  libbitcoin_cli.a \
+  ethereum/libethereum.a
 if ENABLE_WALLET
 BITCOIN_INCLUDES += $(BDB_CPPFLAGS)
 EXTRA_LIBRARIES += libbitcoin_wallet.a
@@ -313,6 +315,21 @@ libbitcoin_cli_a_SOURCES = \
 nodist_libbitcoin_util_a_SOURCES = $(srcdir)/obj/build.h
 #
 
+# ethereum
+ethereum_libethereum_a_CPPFLAGS = $(BITCOIN_INCLUDES)
+ethereum_libethereum_a_SOURCES = \
+  ethereum/Common.cpp \
+  ethereum/Common.h \
+  ethereum/CommonData.cpp \
+  ethereum/CommonData.h \
+  ethereum/Exceptions.h \
+  ethereum/FixedHash.cpp \
+  ethereum/FixedHash.h \
+  ethereum/RLP.cpp \
+  ethereum/RLP.h \
+  ethereum/vector_ref.h
+#
+
 # bitcoind binary #
 dogecoind_SOURCES = bitcoind.cpp
 dogecoind_CPPFLAGS = $(BITCOIN_INCLUDES)
@@ -330,7 +347,8 @@ dogecoind_LDADD = \
   $(LIBBITCOIN_CRYPTO) \
   $(LIBLEVELDB) \
   $(LIBMEMENV) \
-  $(LIBSECP256K1)
+  $(LIBSECP256K1) \
+  $(LIBETHEREUM)
 
 if ENABLE_WALLET
 dogecoind_LDADD += libbitcoin_wallet.a
