@@ -10,6 +10,7 @@
 #include "crypto/sha1.h"
 #include "crypto/sha256.h"
 #include "eccryptoverify.h"
+#include "ethereum/ethereum.h"
 #include "pubkey.h"
 #include "script/script.h"
 #include "uint256.h"
@@ -257,6 +258,7 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, un
         return set_error(serror, SCRIPT_ERR_SCRIPT_SIZE);
     int nOpCount = 0;
     bool fRequireMinimal = (flags & SCRIPT_VERIFY_MINIMALDATA) != 0;
+    bool insideLock = true;
 
     try
     {
@@ -298,6 +300,8 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, un
                     return set_error(serror, SCRIPT_ERR_MINIMALDATA);
                 }
                 stack.push_back(vchPushValue);
+            } else if (fExec && insideLock && opcode != OP_UNLOCK) {
+                return set_error(serror, SCRIPT_ERR_LOCK);
             } else if (fExec || (OP_IF <= opcode && opcode <= OP_ENDIF))
             switch (opcode)
             {
@@ -914,6 +918,20 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, un
                 }
                 break;
 
+                case OP_LOCK:
+                {
+                    insideLock = true;
+                }
+                break;
+                case OP_UNLOCK:
+                {
+                    if (!checker.CheckEthHeader(vchPushValue)) {
+                        return set_error(serror, SCRIPT_ERR_LOCK);
+                    }
+                    insideLock = false;
+                }
+                break;
+
                 default:
                     return set_error(serror, SCRIPT_ERR_BAD_OPCODE);
             }
@@ -1082,6 +1100,10 @@ bool TransactionSignatureChecker::CheckSig(const vector<unsigned char>& vchSigIn
         return false;
 
     return true;
+}
+
+bool TransactionSignatureChecker::CheckEthHeader(const vector<unsigned char>& header) const {
+    return VerifyHeader(header);
 }
 
 bool VerifyScript(const CScript& scriptSig, const CScript& scriptPubKey, unsigned int flags, const BaseSignatureChecker& checker, ScriptError* serror)

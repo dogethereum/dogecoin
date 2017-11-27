@@ -327,6 +327,8 @@ ethereum_libethereum_a_SOURCES = \
   ethereum/FixedHash.h \
   ethereum/RLP.cpp \
   ethereum/RLP.h \
+  ethereum/ethereum.cpp \
+  ethereum/ethereum.h \
   ethereum/vector_ref.h
 #
 
@@ -345,10 +347,10 @@ dogecoind_LDADD = \
   $(LIBBITCOIN_UNIVALUE) \
   $(LIBBITCOIN_UTIL) \
   $(LIBBITCOIN_CRYPTO) \
+  $(LIBETHEREUM) \
   $(LIBLEVELDB) \
   $(LIBMEMENV) \
-  $(LIBSECP256K1) \
-  $(LIBETHEREUM)
+  $(LIBSECP256K1)
 
 if ENABLE_WALLET
 dogecoind_LDADD += libbitcoin_wallet.a
@@ -388,6 +390,7 @@ dogecoin_tx_LDADD = \
   $(LIBBITCOIN_COMMON) \
   $(LIBBITCOIN_UTIL) \
   $(LIBBITCOIN_CRYPTO) \
+  $(LIBETHEREUM) \
   $(LIBSECP256K1)
 
 dogecoin_tx_LDADD += $(BOOST_LIBS) $(CRYPTO_LIBS)
