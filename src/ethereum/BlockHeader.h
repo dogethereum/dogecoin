@@ -22,13 +22,28 @@
 #pragma once
 
 #include <algorithm>
-#include <libdevcore/Common.h>
-#include <libdevcore/RLP.h>
-#include <libdevcore/SHA3.h>
-#include <libdevcore/Guards.h>
 #include "Common.h"
-#include "ChainOperationParams.h"
+#include "RLP.h"
+#include "SHA3.h"
+#include "Guards.h"
+//#include "Common.h"
+#include "Address.h"
+//#include "ChainOperationParams.h"
 #include "Exceptions.h"
+
+namespace dev
+{
+h256 const EmptyTrie = sha3(rlp(""));
+
+namespace eth
+{
+/// The log bloom's size (2048-bit).
+using LogBloom = h2048;
+
+/// Many log blooms.
+using LogBlooms = std::vector<LogBloom>;
+}
+}
 
 namespace dev
 {

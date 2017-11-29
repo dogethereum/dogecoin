@@ -318,6 +318,10 @@ nodist_libbitcoin_util_a_SOURCES = $(srcdir)/obj/build.h
 # ethereum
 ethereum_libethereum_a_CPPFLAGS = $(BITCOIN_INCLUDES)
 ethereum_libethereum_a_SOURCES = \
+  ethereum/Address.cpp \
+  ethereum/Address.h \
+  ethereum/BlockHeader.cpp \
+  ethereum/BlockHeader.h \
   ethereum/Common.cpp \
   ethereum/Common.h \
   ethereum/CommonData.cpp \
@@ -325,8 +329,19 @@ ethereum_libethereum_a_SOURCES = \
   ethereum/Exceptions.h \
   ethereum/FixedHash.cpp \
   ethereum/FixedHash.h \
+  ethereum/Guards.cpp \
+  ethereum/Guards.h \
+  ethereum/MemoryDB.cpp \
+  ethereum/MemoryDB.h \
   ethereum/RLP.cpp \
   ethereum/RLP.h \
+  ethereum/SHA3.cpp \
+  ethereum/SHA3.h \
+  ethereum/TrieCommon.cpp \
+  ethereum/TrieCommon.h \
+  ethereum/TrieDB.h \
+  ethereum/TrieHash.cpp \
+  ethereum/TrieHash.h \
   ethereum/ethereum.cpp \
   ethereum/ethereum.h \
   ethereum/vector_ref.h

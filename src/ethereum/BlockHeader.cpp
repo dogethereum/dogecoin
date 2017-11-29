@@ -19,13 +19,13 @@
  * @date 2014
  */
 
-#include <libdevcore/Common.h>
-#include <libdevcore/Log.h>
-#include <libdevcore/RLP.h>
-#include <libdevcore/TrieDB.h>
-#include <libdevcore/MemoryDB.h>
-#include <libdevcore/TrieHash.h>
-#include <libethcore/Common.h>
+#include "Common.h"
+//#include "Log.h"
+#include "RLP.h"
+#include "TrieDB.h"
+#include "MemoryDB.h"
+#include "TrieHash.h"
+//#include "Common.h"
 #include "Exceptions.h"
 #include "BlockHeader.h"
 using namespace std;
@@ -197,7 +197,7 @@ void BlockHeader::populate(RLP const& _header)
 	}
 }
 
-struct BlockInfoDiagnosticsChannel: public LogChannel { static const char* name() { return EthBlue "▧" EthWhite " ◌"; } static const int verbosity = 9; };
+//struct BlockInfoDiagnosticsChannel: public LogChannel { static const char* name() { return EthBlue "▧" EthWhite " ◌"; } static const int verbosity = 9; };
 
 void BlockHeader::populateFromParent(BlockHeader const& _parent)
 {
@@ -236,7 +236,7 @@ void BlockHeader::verify(Strictness _s, BlockHeader const& _parent, bytesConstRe
 		auto txList = root[1];
 		auto expectedRoot = trieRootOver(txList.itemCount(), [&](unsigned i){ return rlp(i); }, [&](unsigned i){ return txList[i].data().toBytes(); });
 
-		clog(BlockInfoDiagnosticsChannel) << "Expected trie root:" << toString(expectedRoot);
+		//clog(BlockInfoDiagnosticsChannel) << "Expected trie root:" << toString(expectedRoot);
 		if (m_transactionsRoot != expectedRoot)
 		{
 			MemoryDB tm;
@@ -253,18 +253,18 @@ void BlockHeader::verify(Strictness _s, BlockHeader const& _parent, bytesConstRe
 				transactionsTrie.insert(&k.out(), txList[i].data());
 
 				txs.push_back(txList[i].data());
-				cdebug << toHex(k.out()) << toHex(txList[i].data());
+				//cdebug << toHex(k.out()) << toHex(txList[i].data());
 			}
-			cdebug << "trieRootOver" << expectedRoot;
-			cdebug << "orderedTrieRoot" << orderedTrieRoot(txs);
-			cdebug << "TrieDB" << transactionsTrie.root();
-			cdebug << "Contents:";
-			for (auto const& t: txs)
-				cdebug << toHex(t);
+			//cdebug << "trieRootOver" << expectedRoot;
+			//cdebug << "orderedTrieRoot" << orderedTrieRoot(txs);
+			//cdebug << "TrieDB" << transactionsTrie.root();
+			//cdebug << "Contents:";
+			//for (auto const& t: txs)
+			//	cdebug << toHex(t);
 
 			BOOST_THROW_EXCEPTION(InvalidTransactionsRoot() << Hash256RequirementError(expectedRoot, m_transactionsRoot));
 		}
-		clog(BlockInfoDiagnosticsChannel) << "Expected uncle hash:" << toString(sha3(root[2].data()));
+		//clog(BlockInfoDiagnosticsChannel) << "Expected uncle hash:" << toString(sha3(root[2].data()));
 		if (m_sha3Uncles != sha3(root[2].data()))
 			BOOST_THROW_EXCEPTION(InvalidUnclesHash() << Hash256RequirementError(sha3(root[2].data()), m_sha3Uncles));
 	}
