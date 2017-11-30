@@ -33,7 +33,7 @@
 
 namespace dev
 {
-h256 const EmptyTrie = sha3(rlp(""));
+extern const h256 EmptyTrie;
 
 namespace eth
 {
