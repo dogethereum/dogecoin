@@ -88,6 +88,6 @@ bool quickVerifySeal(BlockHeader const& _bi)
 
 
 bool VerifyHeader(const std::vector<unsigned char>& data) {
-    BlockHeader header(data);
-    return true;
+    BlockHeader header(data, BlockDataType::HeaderData);
+    return quickVerifySeal(header);
 }
