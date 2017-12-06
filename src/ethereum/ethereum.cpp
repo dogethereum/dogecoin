@@ -18,77 +18,84 @@ enum { MixHashField = 0, NonceField = 1 };
 
 using Nonce = h64;
 
-///// Type of a seedhash/blockhash e.t.c.
-//typedef struct ethash_h256 { uint8_t b[32]; } ethash_h256_t;
+struct Result
+{
+        h256 value;
+        h256 mixHash;
+        bool success;
+};
 
-//void ethash_quick_hash(
-//	ethash_h256_t* return_hash,
-//	ethash_h256_t const* header_hash,
-//	uint64_t const nonce,
-//	ethash_h256_t const* mix_hash
-//)
-//{
-//	uint8_t buf[64 + 32];
-//	memcpy(buf, header_hash, 32);
-//	fix_endian64_same(nonce);
-//	memcpy(&(buf[32]), &nonce, 8);
-//	SHA3_512(buf, buf, 40);
-//	memcpy(&(buf[64]), mix_hash, 32);
-//	SHA3_256(return_hash, buf, 64 + 32);
-//}
+static Nonce nonce(BlockHeader const& _bi)
+{
+        return _bi.seal<Nonce>(NonceField);
+}
 
-//uint8_t ethash_h256_get(ethash_h256_t const* hash, unsigned int i)
-//{
-//	return hash->b[i];
-//}
+static h256 mixHash(BlockHeader const& _bi)
+{
+        return _bi.seal<h256>(MixHashField);
+}
 
-//bool ethash_check_difficulty(
-//	ethash_h256_t const* hash,
-//	ethash_h256_t const* boundary
-//)
-//{
-//	// Boundary is big endian
-//	for (int i = 0; i < 32; i++) {
-//		if (ethash_h256_get(hash, i) == ethash_h256_get(boundary, i)) {
-//			continue;
-//		}
-//		return ethash_h256_get(hash, i) < ethash_h256_get(boundary, i);
-//	}
-//	return true;
-//}
+static h256 boundary(BlockHeader const& _bi)
+{
+        auto d = _bi.difficulty();
+        return d ? (h256)u256((bigint(1) << 256) / d) : h256();
+}
 
-//bool ethash_quick_check_difficulty(
-//	ethash_h256_t const* header_hash,
-//	uint64_t const nonce,
-//	ethash_h256_t const* mix_hash,
-//	ethash_h256_t const* boundary
-//)
-//{
-//	ethash_h256_t return_hash;
-//	ethash_quick_hash(&return_hash, header_hash, nonce, mix_hash);
-//	return ethash_check_difficulty(&return_hash, boundary);
-//}
+h256 seedHash(BlockHeader const& _bi)
+{
+        unsigned _number = (unsigned)_bi.number();
+        unsigned epoch = _number / ETHASH_EPOCH_LENGTH;
+        h256 ret;
+        unsigned n = 0;
+        for (; n < epoch; ++n, ret = sha3(ret)) {}
+        return ret;
+}
+
+uint64_t EthashAux_number(h256 const& _seedHash)
+{
+        unsigned epoch = 0;
+        for (h256 h; h != _seedHash && epoch < 2048; ++epoch, h = sha3(h)) {}
+        return epoch * ETHASH_EPOCH_LENGTH;
+}
 
 bool quickVerifySeal(BlockHeader const& _bi)
 {
-	if (_bi.number() >= ETHASH_EPOCH_LENGTH * 2048)
-		return false;
-
-	auto h = _bi.hash(WithoutSeal);
-	auto m = _bi.seal<h256>(MixHashField); // mixHash(_bi);
-	auto n = _bi.seal<Nonce>(NonceField); // nonce(_bi);
-        auto d = _bi.difficulty();
-	auto b = d ? (h256)u256((bigint(1) << 256) / d) : h256(); // boundary(_bi);
-	bool ret = !!ethash_quick_check_difficulty(
-		(ethash_h256_t const*)h.data(),
-		(uint64_t)(u64)n,
-		(ethash_h256_t const*)m.data(),
-		(ethash_h256_t const*)b.data());
-	return ret;
+        if (_bi.number() >= ETHASH_EPOCH_LENGTH * 2048)
+                return false;
+        auto h = _bi.hash(WithoutSeal);
+        auto m = mixHash(_bi);
+        auto n = nonce(_bi);
+        auto b = boundary(_bi);
+        bool ret = !!ethash_quick_check_difficulty(
+                (ethash_h256_t const*)h.data(),
+                (uint64_t)(u64)n,
+                (ethash_h256_t const*)m.data(),
+                (ethash_h256_t const*)b.data());
+        return ret;
 }
 
+Result EthashAux_eval(h256 const& _seedHash, h256 const& _headerHash, Nonce const& _nonce)
+{
+        uint64_t blockNumber = EthashAux_number(_seedHash);
+        ethash_light_t light = ethash_light_new(blockNumber);
+        uint64_t size = ethash_get_cachesize(blockNumber);
+        ethash_return_value r = ethash_light_compute(light, *(ethash_h256_t*)_headerHash.data(), (uint64_t)(u64)_nonce);
+        if (r.success) {
+                return Result{h256((uint8_t*)&r.result, h256::ConstructFromPointer), h256((uint8_t*)&r.mix_hash, h256::ConstructFromPointer), true};
+        }
+        return Result{~h256(), h256(), false};
+}
+
+bool verifySeal(BlockHeader const& _bi)
+{
+        bool pre = quickVerifySeal(_bi);
+        if (!pre) return false;
+        auto result = EthashAux_eval(seedHash(_bi), _bi.hash(WithoutSeal), nonce(_bi));
+        bool slow = result.value <= boundary(_bi) && result.mixHash == mixHash(_bi);
+        return slow;
+}
 
 bool VerifyHeader(const std::vector<unsigned char>& data) {
-    BlockHeader header(data, BlockDataType::HeaderData);
-    return quickVerifySeal(header);
+        BlockHeader header(data, BlockDataType::HeaderData);
+        return verifySeal(header);
 }
