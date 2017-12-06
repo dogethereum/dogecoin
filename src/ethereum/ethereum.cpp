@@ -8,6 +8,8 @@
 #include "ethash_internal.h"
 #include "ethash_sha3.h"
 #include "BlockHeader.h"
+#include <memory>
+#include <functional>
 
 using namespace dev;
 using namespace eth;
@@ -77,9 +79,9 @@ bool quickVerifySeal(BlockHeader const& _bi)
 Result EthashAux_eval(h256 const& _seedHash, h256 const& _headerHash, Nonce const& _nonce)
 {
         uint64_t blockNumber = EthashAux_number(_seedHash);
-        ethash_light_t light = ethash_light_new(blockNumber);
-        uint64_t size = ethash_get_cachesize(blockNumber);
-        ethash_return_value r = ethash_light_compute(light, *(ethash_h256_t*)_headerHash.data(), (uint64_t)(u64)_nonce);
+        std::unique_ptr<ethash_light, std::function<void(ethash_light*)>>
+            light(ethash_light_new(blockNumber), [](ethash_light_t light) { ethash_light_delete(light); });
+        ethash_return_value r = ethash_light_compute(light.get(), *(ethash_h256_t*)_headerHash.data(), (uint64_t)(u64)_nonce);
         if (r.success) {
                 return Result{h256((uint8_t*)&r.result, h256::ConstructFromPointer), h256((uint8_t*)&r.mix_hash, h256::ConstructFromPointer), true};
         }
