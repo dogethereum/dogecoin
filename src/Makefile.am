@@ -343,11 +343,15 @@ ethereum_libethereum_a_SOURCES = \
   ethereum/TrieHash.cpp \
   ethereum/TrieHash.h \
   ethereum/compiler.h \
+  ethereum/data_sizes.h \
   ethereum/endian.h \
   ethereum/ethereum.cpp \
   ethereum/ethereum.h \
-  ethereum/sha3_ethash.cpp \
-  ethereum/sha3_ethash.h \
+  ethereum/fnv.h \
+  ethereum/ethash_internal.cpp \
+  ethereum/ethash_internal.h \
+  ethereum/ethash_sha3.cpp \
+  ethereum/ethash_sha3.h \
   ethereum/vector_ref.h
 #
 

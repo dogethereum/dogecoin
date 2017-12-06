@@ -4,7 +4,9 @@
 
 #include "ethereum.h"
 #include "endian.h"
-#include "sha3_ethash.h"
+#include "ethash.h"
+#include "ethash_internal.h"
+#include "ethash_sha3.h"
 #include "BlockHeader.h"
 
 using namespace dev;
@@ -16,57 +18,56 @@ enum { MixHashField = 0, NonceField = 1 };
 
 using Nonce = h64;
 
-/// Type of a seedhash/blockhash e.t.c.
-typedef struct ethash_h256 { uint8_t b[32]; } ethash_h256_t;
+///// Type of a seedhash/blockhash e.t.c.
+//typedef struct ethash_h256 { uint8_t b[32]; } ethash_h256_t;
 
-void ethash_quick_hash(
-	ethash_h256_t* return_hash,
-	ethash_h256_t const* header_hash,
-	uint64_t const nonce,
-	ethash_h256_t const* mix_hash
-)
-{
-	uint8_t buf[64 + 32];
-	memcpy(buf, header_hash, 32);
-	fix_endian64_same(nonce);
-	memcpy(&(buf[32]), &nonce, 8);
-	SHA3_512(buf, buf, 40);
-	memcpy(&(buf[64]), mix_hash, 32);
-	SHA3_256(return_hash, buf, 64 + 32);
-}
+//void ethash_quick_hash(
+//	ethash_h256_t* return_hash,
+//	ethash_h256_t const* header_hash,
+//	uint64_t const nonce,
+//	ethash_h256_t const* mix_hash
+//)
+//{
+//	uint8_t buf[64 + 32];
+//	memcpy(buf, header_hash, 32);
+//	fix_endian64_same(nonce);
+//	memcpy(&(buf[32]), &nonce, 8);
+//	SHA3_512(buf, buf, 40);
+//	memcpy(&(buf[64]), mix_hash, 32);
+//	SHA3_256(return_hash, buf, 64 + 32);
+//}
 
-uint8_t ethash_h256_get(ethash_h256_t const* hash, unsigned int i)
-{
-	return hash->b[i];
-}
+//uint8_t ethash_h256_get(ethash_h256_t const* hash, unsigned int i)
+//{
+//	return hash->b[i];
+//}
 
-bool ethash_check_difficulty(
-	ethash_h256_t const* hash,
-	ethash_h256_t const* boundary
-)
-{
-	// Boundary is big endian
-	for (int i = 0; i < 32; i++) {
-		if (ethash_h256_get(hash, i) == ethash_h256_get(boundary, i)) {
-			continue;
-		}
-		return ethash_h256_get(hash, i) < ethash_h256_get(boundary, i);
-	}
-	return true;
-}
+//bool ethash_check_difficulty(
+//	ethash_h256_t const* hash,
+//	ethash_h256_t const* boundary
+//)
+//{
+//	// Boundary is big endian
+//	for (int i = 0; i < 32; i++) {
+//		if (ethash_h256_get(hash, i) == ethash_h256_get(boundary, i)) {
+//			continue;
+//		}
+//		return ethash_h256_get(hash, i) < ethash_h256_get(boundary, i);
+//	}
+//	return true;
+//}
 
-bool ethash_quick_check_difficulty(
-	ethash_h256_t const* header_hash,
-	uint64_t const nonce,
-	ethash_h256_t const* mix_hash,
-	ethash_h256_t const* boundary
-)
-{
-	ethash_h256_t return_hash;
-	ethash_quick_hash(&return_hash, header_hash, nonce, mix_hash);
-	return ethash_check_difficulty(&return_hash, boundary);
-}
-
+//bool ethash_quick_check_difficulty(
+//	ethash_h256_t const* header_hash,
+//	uint64_t const nonce,
+//	ethash_h256_t const* mix_hash,
+//	ethash_h256_t const* boundary
+//)
+//{
+//	ethash_h256_t return_hash;
+//	ethash_quick_hash(&return_hash, header_hash, nonce, mix_hash);
+//	return ethash_check_difficulty(&return_hash, boundary);
+//}
 
 bool quickVerifySeal(BlockHeader const& _bi)
 {

@@ -6,7 +6,7 @@
 * License: CC0, attribution kindly requested. Blame taken too,
 * but not liability.
 */
-#include "sha3_ethash.h"
+#include "ethash_sha3.h"
 
 #include <stdint.h>
 #include <stdio.h>
