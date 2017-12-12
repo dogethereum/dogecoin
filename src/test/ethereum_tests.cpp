@@ -4,6 +4,8 @@
 #include "util.h"
 #include "utilstrencodings.h"
 #include "ethereum/ethereum.h"
+#include "script/interpreter.h"
+#include "script/standard.h"
 
 char block_header_data[] = "" \
     "f90214a09c43161bc5c218f02f3df81543af39066cd9172619d0fcd055e2dcb0" \
@@ -25,6 +27,20 @@ char block_header_data[] = "" \
     "b72fbb11b19924e493b972fb0cd8881247ec247b1fadf5";
 
 
+class EthereumTestChecker : public BaseSignatureChecker
+{
+public:
+    virtual bool CheckSig(const std::vector<unsigned char>& scriptSig, const std::vector<unsigned char>& vchPubKey, const CScript& scriptCode) const
+    {
+        return true;
+    }
+
+    virtual bool CheckEthHeader(const std::vector<unsigned char>& header) const {
+        return VerifyHeader(header);
+    }
+};
+
+
 BOOST_AUTO_TEST_SUITE(ethereum_tests)
 
 BOOST_AUTO_TEST_CASE(ethereum_blockheader)
@@ -32,6 +48,22 @@ BOOST_AUTO_TEST_CASE(ethereum_blockheader)
     std::vector<unsigned char> header = ParseHex(block_header_data);
     bool verified = VerifyHeader(header);
     BOOST_CHECK(verified);
+}
+
+BOOST_AUTO_TEST_CASE(ethereum_evalscript)
+{
+    std::vector<std::vector<unsigned char> > stack;
+    ScriptError err;
+    CScript scriptPubKey = CScript()
+            << OP_LOCK
+            << ParseHex(block_header_data)
+            << OP_UNLOCK;
+
+    EthereumTestChecker checker;
+
+    BOOST_CHECK_EQUAL(EvalScript(stack, scriptPubKey, STANDARD_SCRIPT_VERIFY_FLAGS, checker, &err), true);
+
+    BOOST_CHECK_EQUAL(err, SCRIPT_ERR_OK);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
