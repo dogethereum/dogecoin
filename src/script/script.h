@@ -148,22 +148,20 @@ enum opcodetype
     OP_CHECKMULTISIG = 0xae,
     OP_CHECKMULTISIGVERIFY = 0xaf,
 
+    // Unlock
+    OP_UNLOCK = 0xb4,
+
     // expansion
     OP_NOP1 = 0xb0,
     OP_NOP2 = 0xb1,
     OP_NOP3 = 0xb2,
     OP_NOP4 = 0xb3,
-    OP_NOP5 = 0xb4,
+    // OP_NOP5 = 0xb4,
     OP_NOP6 = 0xb5,
     OP_NOP7 = 0xb6,
     OP_NOP8 = 0xb7,
     OP_NOP9 = 0xb8,
     OP_NOP10 = 0xb9,
-
-    // unlock
-    OP_LOCK = 0xc0,
-    OP_UNLOCK = 0xc1,
-
 
     // template matching params
     OP_SMALLDATA = 0xf9,

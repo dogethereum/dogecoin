@@ -48,8 +48,8 @@ typedef enum ScriptError_t
     /* softfork safeness */
     SCRIPT_ERR_DISCOURAGE_UPGRADABLE_NOPS,
 
-    /* */
-    SCRIPT_ERR_LOCK,
+    /* error unlocking funds */
+    SCRIPT_ERR_UNLOCK,
 
     SCRIPT_ERR_ERROR_COUNT
 } ScriptError;

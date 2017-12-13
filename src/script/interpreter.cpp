@@ -258,7 +258,6 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, un
         return set_error(serror, SCRIPT_ERR_SCRIPT_SIZE);
     int nOpCount = 0;
     bool fRequireMinimal = (flags & SCRIPT_VERIFY_MINIMALDATA) != 0;
-    bool insideLock = false;
 
     try
     {
@@ -300,8 +299,6 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, un
                     return set_error(serror, SCRIPT_ERR_MINIMALDATA);
                 }
                 stack.push_back(vchPushValue);
-            } else if (fExec && insideLock && opcode != OP_UNLOCK) {
-                return set_error(serror, SCRIPT_ERR_LOCK);
             } else if (fExec || (OP_IF <= opcode && opcode <= OP_ENDIF))
             switch (opcode)
             {
@@ -341,7 +338,7 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, un
                 case OP_NOP:
                 break;
 
-                case OP_NOP1: case OP_NOP2: case OP_NOP3: case OP_NOP4: case OP_NOP5:
+                case OP_NOP1: case OP_NOP2: case OP_NOP3: case OP_NOP4: // case OP_NOP5:
                 case OP_NOP6: case OP_NOP7: case OP_NOP8: case OP_NOP9: case OP_NOP10:
                 {
                     if (flags & SCRIPT_VERIFY_DISCOURAGE_UPGRADABLE_NOPS)
@@ -918,16 +915,8 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, un
                 }
                 break;
 
-                case OP_LOCK:
-                {
-                    insideLock = true;
-                }
-                break;
                 case OP_UNLOCK:
                 {
-                    if (!insideLock)
-                        return set_error(serror, SCRIPT_ERR_LOCK);
-
                     if (stack.size() < 1)
                         return set_error(serror, SCRIPT_ERR_INVALID_STACK_OPERATION);
 
@@ -935,12 +924,11 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, un
 
                     bool fOk = checker.CheckEthHeader(vchEthHeader);
 
-                    if (fOk)
+                    if (fOk) {
                         popstack(stack);
-                    else
-                        return set_error(serror, SCRIPT_ERR_LOCK);
-
-                    insideLock = false;
+                        stack.push_back(vchTrue);
+                    } else
+                        return set_error(serror, SCRIPT_ERR_UNLOCK);
                 }
                 break;
 
@@ -957,9 +945,6 @@ bool EvalScript(vector<vector<unsigned char> >& stack, const CScript& script, un
     {
         return set_error(serror, SCRIPT_ERR_UNKNOWN_ERROR);
     }
-
-    if (insideLock)
-        return set_error(serror, SCRIPT_ERR_LOCK);
 
     if (!vfExec.empty())
         return set_error(serror, SCRIPT_ERR_UNBALANCED_CONDITIONAL);

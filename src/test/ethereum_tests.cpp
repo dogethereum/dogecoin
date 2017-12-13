@@ -54,16 +54,29 @@ BOOST_AUTO_TEST_CASE(ethereum_evalscript)
 {
     std::vector<std::vector<unsigned char> > stack;
     ScriptError err;
+    EthereumTestChecker checker;
     CScript scriptPubKey = CScript()
-            << OP_LOCK
             << ParseHex(block_header_data)
             << OP_UNLOCK;
-
-    EthereumTestChecker checker;
 
     BOOST_CHECK_EQUAL(EvalScript(stack, scriptPubKey, STANDARD_SCRIPT_VERIFY_FLAGS, checker, &err), true);
 
     BOOST_CHECK_EQUAL(err, SCRIPT_ERR_OK);
 }
 
+BOOST_AUTO_TEST_CASE(ethereum_verifyscript)
+{
+    ScriptError err;
+    EthereumTestChecker checker;
+    CScript scriptSig = CScript()
+            << ParseHex(block_header_data);
+    CScript scriptPubKey = CScript()
+            << OP_UNLOCK;
+
+    BOOST_CHECK_EQUAL(VerifyScript(scriptSig, scriptPubKey, STANDARD_SCRIPT_VERIFY_FLAGS, checker, &err), true);
+
+    BOOST_CHECK_EQUAL(err, SCRIPT_ERR_OK);
+}
+
 BOOST_AUTO_TEST_SUITE_END()
+
