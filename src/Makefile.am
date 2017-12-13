@@ -101,6 +101,7 @@ BITCOIN_CORE_H = \
   dogecoin.h \
   eccryptoverify.h \
   ecwrapper.h \
+  ethereum/ethchecker.h \
   hash.h \
   init.h \
   key.h \
@@ -185,6 +186,7 @@ libbitcoin_server_a_SOURCES = \
   bloom.cpp \
   chain.cpp \
   checkpoints.cpp \
+  ethereum/ethchecker.cpp \
   init.cpp \
   leveldbwrapper.cpp \
   main.cpp \

@@ -15,6 +15,7 @@
 #include "chainparams.h"
 #include "coins.h"
 #include "consensus/consensus.h"
+#include "ethereum/ethchecker.h"
 #include "net.h"
 #include "primitives/block.h"
 #include "primitives/transaction.h"
